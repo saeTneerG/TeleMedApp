@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES } from '../../constants/theme';
 import { useAuth } from '../../context/AuthContext';
 import DoctorCard from '../../components/specific/DoctorCard';
+import { joinQueue } from '../../services/queueService';
 
 const PatientHomeScreen = ({ navigation }) => {
     const { userData } = useAuth(); // ดึงชื่อคนไข้มาแสดง
@@ -44,7 +45,15 @@ const PatientHomeScreen = ({ navigation }) => {
 
                     <TouchableOpacity
                         style={styles.queueButton}
-                        onPress={() => alert('ระบบเข้าคิวจะอยู่ในส่วนที่ 5 ครับ!')}
+                        onPress={async () => {
+                            try {
+                                await joinQueue(userData.uid, userData.fullName, 'ปวดหัว ตัวร้อน (ทดสอบ)');
+                                alert('จองคิวสำเร็จ! รอหมอกดรับนะครับ');
+                            } catch (e) {
+                                alert('จองคิวไม่สำเร็จ');
+                            }
+                        }}
+
                     >
                         <Text style={styles.queueButtonText}>เข้าห้องตรวจ (จับคู่หมอ)</Text>
                     </TouchableOpacity>
@@ -65,13 +74,15 @@ const PatientHomeScreen = ({ navigation }) => {
                     <TouchableOpacity><Text style={{ color: COLORS.primary }}>ดูทั้งหมด</Text></TouchableOpacity>
                 </View>
 
-                {recentDoctors.map(doc => (
-                    <DoctorCard key={doc.id} doctor={doc} onPress={() => { }} />
-                ))}
+                {
+                    recentDoctors.map(doc => (
+                        <DoctorCard key={doc.id} doctor={doc} onPress={() => { }} />
+                    ))
+                }
 
                 <View style={{ height: 100 }} />
-            </ScrollView>
-        </View>
+            </ScrollView >
+        </View >
     );
 };
 

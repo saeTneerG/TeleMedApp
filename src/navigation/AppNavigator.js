@@ -8,7 +8,7 @@ import { COLORS } from '../constants/theme';
 // Import Stacks
 import AuthStack from './AuthStack';
 import PatientTabs from './PatientTabs';
-// import DoctorTabs from './DoctorTabs'; // (ส่วนที่ 4 เดี๋ยวมาทำต่อ)
+import DoctorTabs from './DoctorTabs';
 
 const AppNavigator = () => {
     const { user, userData, loading } = useAuth();
@@ -30,10 +30,9 @@ const AppNavigator = () => {
             ) : (
                 // 3. ถ้ามี User -> เช็ค Role
                 userData?.role === 'doctor' ? (
-                    // <DoctorTabs /> // เดี๋ยวเปิดใช้ในส่วนที่ 4
-                    <View><ActivityIndicator /></View> // Placeholder ไว้ก่อน
+                    <DoctorTabs /> // <-- เรียกใช้ตรงนี้
                 ) : (
-                    <PatientTabs /> // ถ้าเป็น patient หรือ role อื่นๆ ให้ไปหน้าคนไข้
+                    <PatientTabs />
                 )
             )}
         </NavigationContainer>
