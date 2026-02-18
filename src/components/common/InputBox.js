@@ -8,20 +8,22 @@ const InputBox = ({
     onChangeText,
     placeholder,
     secureTextEntry,
-    keyboardType = 'default'
+    keyboardType = 'default',
+    multiline = false
 }) => {
     return (
         <View style={styles.container}>
             {label && <Text style={styles.label}>{label}</Text>}
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, multiline && { minHeight: 80 }]}>
                 <TextInput
-                    style={styles.input}
+                    style={[styles.input, multiline && { textAlignVertical: 'top' }]}
                     value={value}
                     onChangeText={onChangeText}
                     placeholder={placeholder}
                     placeholderTextColor={COLORS.textSecondary}
                     secureTextEntry={secureTextEntry}
                     keyboardType={keyboardType}
+                    multiline={multiline}
                 />
             </View>
         </View>

@@ -73,7 +73,7 @@ const LoginScreen = () => {
                 <View style={{ marginTop: 10, alignItems: 'center' }}>
                     <Text
                         style={[styles.link, { fontSize: 14, color: COLORS.textSecondary }]}
-                        onPress={() => navigation.navigate(ROUTES.FORGOT_PASSWORD)}
+                        onPress={() => Alert.alert('แจ้งเตือน', 'ฟีเจอร์นี้ยังไม่พร้อมใช้งาน')}
                     >
                         ลืมรหัสผ่าน?
                     </Text>

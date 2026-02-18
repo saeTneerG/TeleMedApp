@@ -12,6 +12,74 @@ import {
     orderBy
 } from 'firebase/firestore';
 
+// 4. (คนไข้) ยกเลิกคิว
+export const cancelQueue = async (queueId) => {
+    try {
+        const queueRef = doc(db, 'queues', queueId);
+        await updateDoc(queueRef, {
+            status: 'cancelled',
+        });
+        return true;
+    } catch (error) {
+        console.error("Error cancelling queue:", error);
+        throw error;
+    }
+};
+
+// 5. (คนไข้) ฟังสถานะคิวของตัวเอง (Real-time) — ใช้ในหน้ารอ
+export const subscribeToQueueItem = (queueId, callback) => {
+    const queueRef = doc(db, 'queues', queueId);
+    const unsubscribe = onSnapshot(queueRef, (docSnap) => {
+        if (docSnap.exists()) {
+            callback({ id: docSnap.id, ...docSnap.data() });
+        }
+    });
+    return unsubscribe;
+};
+
+// 6. ฟังรายการแชทของฉัน (ทั้งคนไข้และหมอ)
+export const subscribeToMyChats = (userId, callback) => {
+    // Query 1: คิวที่ฉันเป็นคนไข้
+    const patientQuery = query(
+        collection(db, 'queues'),
+        where('patientId', '==', userId),
+        where('status', '==', 'matched'),
+    );
+
+    // Query 2: คิวที่ฉันเป็นหมอ
+    const doctorQuery = query(
+        collection(db, 'queues'),
+        where('doctorId', '==', userId),
+        where('status', '==', 'matched'),
+    );
+
+    let patientResults = [];
+    let doctorResults = [];
+
+    const mergeAndCallback = () => {
+        // รวมและเรียงตามเวลา
+        const merged = [...patientResults, ...doctorResults];
+        merged.sort((a, b) => {
+            const aTime = a.acceptedAt?.toMillis?.() || 0;
+            const bTime = b.acceptedAt?.toMillis?.() || 0;
+            return bTime - aTime; // ใหม่สุดก่อน
+        });
+        callback(merged);
+    };
+
+    const unsub1 = onSnapshot(patientQuery, (snapshot) => {
+        patientResults = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        mergeAndCallback();
+    });
+
+    const unsub2 = onSnapshot(doctorQuery, (snapshot) => {
+        doctorResults = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        mergeAndCallback();
+    });
+
+    return () => { unsub1(); unsub2(); };
+};
+
 // 1. (คนไข้) ฟังก์ชันเข้าคิว
 export const joinQueue = async (patientId, patientName, symptom) => {
     try {

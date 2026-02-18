@@ -8,14 +8,9 @@ import { ROUTES } from '../constants/routes';
 // Import Screens (สร้างไฟล์เปล่าๆ รอไว้ก่อนได้ครับถ้ายังไม่มี)
 import PatientHomeScreen from '../screens/patient/PatientHomeScreen';
 import PatientProfileScreen from '../screens/patient/PatientProfileScreen';
-// หน้า Appointment และ Chat เราจะทำในส่วนต่อไป แต่ตอนนี้ใส่ Placeholder ไว้ก่อนได้
-import { View, Text } from 'react-native';
+import MyAppointmentsScreen from '../screens/patient/MyAppointmentsScreen';
+import ChatListScreen from '../screens/consultation/ChatListScreen';
 
-const PlaceholderScreen = ({ title }) => (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>{title}</Text>
-    </View>
-);
 
 const Tab = createBottomTabNavigator();
 
@@ -35,7 +30,7 @@ const PatientTabs = () => {
                     let iconName;
                     if (route.name === ROUTES.PATIENT_HOME) iconName = focused ? 'home' : 'home-outline';
                     else if (route.name === ROUTES.MY_APPOINTMENTS) iconName = focused ? 'calendar' : 'calendar-outline';
-                    else if (route.name === ROUTES.CHAT) iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
+                    else if (route.name === 'ChatTab') iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
                     else if (route.name === ROUTES.PATIENT_PROFILE) iconName = focused ? 'person' : 'person-outline';
 
                     return <Ionicons name={iconName} size={size} color={color} />;
@@ -49,12 +44,12 @@ const PatientTabs = () => {
             />
             <Tab.Screen
                 name={ROUTES.MY_APPOINTMENTS}
-                children={() => <PlaceholderScreen title="นัดหมาย" />}
+                component={MyAppointmentsScreen}
                 options={{ tabBarLabel: 'นัดหมาย' }}
             />
             <Tab.Screen
-                name={ROUTES.CHAT}
-                children={() => <PlaceholderScreen title="แชท" />}
+                name="ChatTab"
+                component={ChatListScreen}
                 options={{ tabBarLabel: 'แชท' }}
             />
             <Tab.Screen

@@ -34,10 +34,14 @@ const DoctorHomeScreen = () => {
 
         try {
             await acceptPatient(item.id, user.uid, userData.fullName);
-            Alert.alert('สำเร็จ', 'รับเคสเรียบร้อย เตรียมเข้าห้องตรวจ...');
 
-            // ส่งไปห้องแชท/วิดีโอ (ส่วนที่ 5)
-            // navigation.navigate(ROUTES.CHAT, { queueId: item.id, patientId: item.patientId });
+            // ส่งหมอเข้าห้องแชทเดียวกับคนไข้ (ใช้ queueId เป็น roomId)
+            navigation.navigate(ROUTES.CHAT, {
+                roomId: item.id,
+                chatPartnerName: item.patientName || 'คนไข้',
+                patientId: item.patientId,
+                queueId: item.id,
+            });
         } catch (error) {
             Alert.alert('Error', 'เกิดข้อผิดพลาดในการรับเคส');
         }
@@ -51,7 +55,7 @@ const DoctorHomeScreen = () => {
                     <Ionicons name="person-circle" size={40} color={COLORS.secondary} />
                     <View style={{ marginLeft: 10 }}>
                         <Text style={styles.patientName}>{item.patientName}</Text>
-                        <Text style={styles.timestamp}>รอเมื่อ: {new Date(item.createdAt?.toDate()).toLocaleTimeString()}</Text>
+                        <Text style={styles.timestamp}>รอเมื่อ: {item.createdAt ? item.createdAt.toDate().toLocaleTimeString() : 'เพิ่งมา'}</Text>
                     </View>
                 </View>
                 <View style={styles.badge}>
@@ -101,7 +105,6 @@ const DoctorHomeScreen = () => {
             <View style={styles.content}>
                 <View style={styles.sectionHeader}>
                     <Text style={styles.sectionTitle}>คิวรอรับบริการ ({queueList.length})</Text>
-                    <TouchableOpacity><Text style={{ color: COLORS.primary }}>ดูทั้งหมด</Text></TouchableOpacity>
                 </View>
 
                 {queueList.length === 0 ? (

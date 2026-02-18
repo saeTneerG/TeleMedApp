@@ -22,4 +22,5 @@ export const ROUTES = {
     VIDEO_CALL: 'VideoCallScreen',
     PRESCRIPTION: 'PrescriptionScreen',
     PAYMENT: 'PaymentScreen',
+    WAITING_ROOM: 'WaitingRoomScreen',
 };

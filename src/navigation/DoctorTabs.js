@@ -7,7 +7,10 @@ import { ROUTES } from '../constants/routes';
 
 // Screens
 import DoctorHomeScreen from '../screens/doctor/DoctorHomeScreen';
-import DoctorProfileScreen from '../screens/doctor/DoctorProfileScreen'; // สร้างไฟล์เปล่ารอไว้ก่อน
+// src/screens/doctor/MyPatientsScreen.js
+import MyPatientsScreen from '../screens/doctor/MyPatientsScreen';
+import DoctorProfileScreen from '../screens/doctor/DoctorProfileScreen';
+import ChatListScreen from '../screens/consultation/ChatListScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -22,8 +25,9 @@ const DoctorTabs = () => {
                 tabBarIcon: ({ focused, color, size }) => {
                     let iconName;
                     if (route.name === ROUTES.DOCTOR_HOME) iconName = focused ? 'medkit' : 'medkit-outline';
-                    else if (route.name === ROUTES.PATIENT_DETAIL) iconName = focused ? 'people' : 'people-outline'; // หน้ารายชื่อคนไข้ (Placeholder)
-                    else iconName = focused ? 'person' : 'person-outline'; // Profile
+                    else if (route.name === 'DoctorChatTab') iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
+                    else if (route.name === ROUTES.PATIENT_DETAIL) iconName = focused ? 'people' : 'people-outline';
+                    else iconName = focused ? 'person' : 'person-outline';
 
                     return <Ionicons name={iconName} size={size} color={color} />;
                 },
@@ -34,10 +38,15 @@ const DoctorTabs = () => {
                 component={DoctorHomeScreen}
                 options={{ tabBarLabel: 'รับเคส' }}
             />
-            {/* ใส่ Placeholder ไปก่อน */}
+            <Tab.Screen
+                name="DoctorChatTab"
+                component={ChatListScreen}
+                options={{ tabBarLabel: 'แชท' }}
+            />
+            {/* หน้าคนไข้ของฉัน */}
             <Tab.Screen
                 name={ROUTES.PATIENT_DETAIL}
-                component={DoctorProfileScreen}
+                component={MyPatientsScreen}
                 options={{ tabBarLabel: 'คนไข้ของฉัน' }}
             />
             <Tab.Screen

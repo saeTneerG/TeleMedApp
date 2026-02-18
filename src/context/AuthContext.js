@@ -61,13 +61,21 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // รีเฟรชข้อมูลผู้ใช้ (เรียกหลังจากอัปเดตโปรไฟล์)
+    const refreshUserData = async () => {
+        if (user) {
+            await fetchUserData(user.uid);
+        }
+    };
+
     return (
         <AuthContext.Provider value={{
             user,       // ตัวตนจาก Auth (uid, email)
             userData,   // ข้อมูลจาก DB (role, name, etc.)
             loading,    // สถานะโหลด
             login,
-            logout
+            logout,
+            refreshUserData  // รีเฟรชข้อมูลหลังจากแก้ไขโปรไฟล์
         }}>
             {children}
         </AuthContext.Provider>
