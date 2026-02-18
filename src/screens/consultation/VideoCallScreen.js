@@ -1,11 +1,12 @@
 // src/screens/consultation/VideoCallScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Button } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES } from '../../constants/theme';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import { ROUTES } from '../../constants/routes';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 
 const VideoCallScreen = () => {
     const navigation = useNavigation();
@@ -15,7 +16,9 @@ const VideoCallScreen = () => {
 
     const [isMuted, setIsMuted] = useState(false);
     const [isCameraOff, setIsCameraOff] = useState(false);
+    const [facing, setFacing] = useState('front'); // กล้องหน้าสำหรับวิดีโอคอล
     const [duration, setDuration] = useState(0);
+    const [permission, requestPermission] = useCameraPermissions();
 
     // จับเวลาการโทร
     useEffect(() => {
@@ -30,8 +33,6 @@ const VideoCallScreen = () => {
     };
 
     const handleEndCall = () => {
-        // ถ้าเป็นหมอ ให้ไปหน้าสั่งยา (Prescription)
-        // ถ้าเป็นคนไข้ ให้กลับไปหน้า Chat หรือ Home
         if (userData?.role === 'doctor') {
             navigation.replace(ROUTES.PRESCRIPTION, {
                 patientName: partnerName,
@@ -45,13 +46,53 @@ const VideoCallScreen = () => {
         }
     };
 
+    const toggleCameraFacing = () => {
+        setFacing(current => (current === 'back' ? 'front' : 'back'));
+    };
+
+    // กรณี permission ยังโหลดอยู่
+    if (!permission) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={COLORS.primary} />
+                <Text style={styles.loadingText}>กำลังขอสิทธิ์กล้อง...</Text>
+            </View>
+        );
+    }
+
+    // กรณียังไม่ได้รับอนุญาต
+    if (!permission.granted) {
+        return (
+            <View style={styles.permissionContainer}>
+                <Ionicons name="camera-outline" size={80} color={COLORS.primary} />
+                <Text style={styles.permissionTitle}>ต้องการเข้าถึงกล้อง</Text>
+                <Text style={styles.permissionMessage}>
+                    กรุณาอนุญาตให้แอปเข้าถึงกล้องเพื่อใช้งานวิดีโอคอล
+                </Text>
+                <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
+                    <Text style={styles.permissionButtonText}>อนุญาตเข้าถึงกล้อง</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Text style={styles.goBackText}>ย้อนกลับ</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
-            {/* 1. ภาพคู่สนทนา (เต็มจอ) */}
-            <Image
-                source={{ uri: 'https://img.freepik.com/free-photo/doctor-offering-medical-teleconsultation_23-2149329007.jpg' }}
-                style={styles.remoteVideo}
-            />
+            {/* 1. กล้องจริงเต็มจอ (แทนที่รูปจำลอง) */}
+            {isCameraOff ? (
+                <View style={styles.cameraOffContainer}>
+                    <Ionicons name="videocam-off" size={80} color="#999" />
+                    <Text style={styles.cameraOffText}>ปิดกล้องอยู่</Text>
+                </View>
+            ) : (
+                <CameraView
+                    style={styles.camera}
+                    facing={facing}
+                />
+            )}
 
             {/* Overlay ข้อมูลด้านบน */}
             <View style={styles.topBar}>
@@ -64,21 +105,7 @@ const VideoCallScreen = () => {
                 </View>
             </View>
 
-            {/* 2. ภาพเรา (จอเล็ก มุมขวา) */}
-            <View style={styles.localVideoContainer}>
-                {isCameraOff ? (
-                    <View style={[styles.localVideo, { backgroundColor: '#333', justifyContent: 'center', alignItems: 'center' }]}>
-                        <Ionicons name="videocam-off" size={30} color="#fff" />
-                    </View>
-                ) : (
-                    <Image
-                        source={{ uri: 'https://ui-avatars.com/api/?name=' + (userData?.fullName || 'Me') }}
-                        style={styles.localVideo}
-                    />
-                )}
-            </View>
-
-            {/* 3. ปุ่มควบคุมด้านล่าง */}
+            {/* 2. ปุ่มควบคุมด้านล่าง */}
             <View style={styles.controlsContainer}>
                 {/* ปุ่มปิดไมค์ */}
                 <TouchableOpacity
@@ -88,7 +115,15 @@ const VideoCallScreen = () => {
                     <Ionicons name={isMuted ? "mic-off" : "mic"} size={28} color={isMuted ? COLORS.primary : COLORS.white} />
                 </TouchableOpacity>
 
-                {/* ปุ่มวางสาย (สีแดง ใหญ่หน่อย) */}
+                {/* ปุ่มสลับกล้อง หน้า/หลัง */}
+                <TouchableOpacity
+                    style={styles.controlButton}
+                    onPress={toggleCameraFacing}
+                >
+                    <Ionicons name="camera-reverse" size={28} color={COLORS.white} />
+                </TouchableOpacity>
+
+                {/* ปุ่มวางสาย */}
                 <TouchableOpacity
                     style={[styles.controlButton, styles.hangupButton]}
                     onPress={handleEndCall}
@@ -96,7 +131,7 @@ const VideoCallScreen = () => {
                     <Ionicons name="call" size={32} color={COLORS.white} />
                 </TouchableOpacity>
 
-                {/* ปุ่มปิดกล้อง */}
+                {/* ปุ่มปิด/เปิดกล้อง */}
                 <TouchableOpacity
                     style={[styles.controlButton, isCameraOff && styles.controlButtonActive]}
                     onPress={() => setIsCameraOff(!isCameraOff)}
@@ -110,8 +145,33 @@ const VideoCallScreen = () => {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#000' },
-    remoteVideo: { width: '100%', height: '100%', resizeMode: 'cover', opacity: 0.9 },
+    camera: { width: '100%', height: '100%' },
 
+    // กรณีกล้องปิด
+    cameraOffContainer: {
+        flex: 1, backgroundColor: '#1a1a2e',
+        justifyContent: 'center', alignItems: 'center',
+    },
+    cameraOffText: { color: '#999', fontSize: 16, marginTop: 10 },
+
+    // Loading & Permission
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' },
+    loadingText: { color: COLORS.white, marginTop: 15, fontSize: 16 },
+
+    permissionContainer: {
+        flex: 1, justifyContent: 'center', alignItems: 'center',
+        backgroundColor: COLORS.background, padding: 30,
+    },
+    permissionTitle: { fontSize: 22, fontWeight: 'bold', color: COLORS.textPrimary, marginTop: 20 },
+    permissionMessage: { fontSize: 15, color: COLORS.textSecondary, textAlign: 'center', marginTop: 10, marginBottom: 30 },
+    permissionButton: {
+        backgroundColor: COLORS.primary, paddingVertical: 14, paddingHorizontal: 40,
+        borderRadius: SIZES.radius,
+    },
+    permissionButtonText: { color: COLORS.white, fontSize: 16, fontWeight: 'bold' },
+    goBackText: { color: COLORS.textSecondary, marginTop: 20, fontSize: 14 },
+
+    // Top bar overlay
     topBar: {
         position: 'absolute', top: 50, left: 20, right: 20,
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'
@@ -120,14 +180,7 @@ const styles = StyleSheet.create({
     timer: { color: COLORS.white, fontSize: SIZES.body, marginTop: 5, textShadowColor: 'rgba(0,0,0,0.7)', textShadowRadius: 5 },
     signalIcon: { backgroundColor: 'rgba(0,0,0,0.3)', padding: 8, borderRadius: 20 },
 
-    localVideoContainer: {
-        position: 'absolute', right: 20, bottom: 150,
-        width: 100, height: 140, borderRadius: 10,
-        borderWidth: 2, borderColor: COLORS.white,
-        overflow: 'hidden', elevation: 5
-    },
-    localVideo: { width: '100%', height: '100%', resizeMode: 'cover' },
-
+    // Control buttons
     controlsContainer: {
         position: 'absolute', bottom: 40, left: 0, right: 0,
         flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center',
@@ -136,7 +189,6 @@ const styles = StyleSheet.create({
         width: 60, height: 60, borderRadius: 30,
         backgroundColor: 'rgba(255,255,255,0.3)',
         justifyContent: 'center', alignItems: 'center',
-        // backdropFilter ถูกลบแล้ว — ไม่รองรับใน React Native
     },
     controlButtonActive: { backgroundColor: COLORS.white },
     hangupButton: { backgroundColor: COLORS.danger, width: 70, height: 70, borderRadius: 35 },

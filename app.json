@@ -28,7 +28,15 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow TeleMedApp to access your camera for video calls",
+          "microphonePermission": "Allow TeleMedApp to access your microphone for video calls",
+          "recordAudioAndroid": true
+        }
+      ]
     ]
   }
 }
