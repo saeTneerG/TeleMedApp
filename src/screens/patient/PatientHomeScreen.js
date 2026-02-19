@@ -134,6 +134,8 @@ const PatientHomeScreen = ({ navigation }) => {
                             onPress={() => navigation.navigate(ROUTES.CHAT, {
                                 roomId: doc.roomId,
                                 chatPartnerName: doc.name,
+                                queueId: doc.roomId,
+                                patientId: user.uid,
                             })}
                         />
                     ))

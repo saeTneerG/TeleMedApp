@@ -12,17 +12,19 @@ const VideoCallScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const { userData } = useAuth();
-    const { partnerName, patientId, queueId } = route.params || { partnerName: 'Doctor' };
+    const { partnerName, roomId, patientId, queueId } = route.params || { partnerName: 'Doctor' };
 
     const [roomUrl, setRoomUrl] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const initializeCall = async () => {
-            // In a real app, the room URL might be passed via navigation or fetched from a booking
-            // For this demo, we'll create a new room dynamically
-            const url = await createRoom();
+            // Use deterministic id from queue/chat room to ensure doctor and patient join the same room.
+            const stableRoomId = queueId || roomId || patientId;
+            console.log('VideoCall params:', { queueId, roomId, patientId, stableRoomId });
+            const url = await createRoom(stableRoomId);
             if (url) {
+                console.log('VideoCall room URL:', url);
                 setRoomUrl(url);
             } else {
                 Alert.alert('Error', 'Failed to start video call');
@@ -32,7 +34,7 @@ const VideoCallScreen = () => {
         };
 
         initializeCall();
-    }, []);
+    }, [queueId, roomId, patientId, navigation]);
 
     const handleEndCall = () => {
         Alert.alert('End Call', 'Are you sure you want to end the call?', [
@@ -60,6 +62,10 @@ const VideoCallScreen = () => {
                 <WebView
                     source={{ uri: roomUrl }}
                     style={styles.webview}
+                    onLoadStart={(event) => console.log('WebView load start:', event?.nativeEvent?.url)}
+                    onNavigationStateChange={(navState) => console.log('WebView nav:', navState?.url)}
+                    onHttpError={(event) => console.log('WebView HTTP error:', event?.nativeEvent?.statusCode, event?.nativeEvent?.url)}
+                    onError={(event) => console.log('WebView error:', event?.nativeEvent)}
                     allowsInlineMediaPlayback
                     mediaPlaybackRequiresUserAction={false}
                     javaScriptEnabled

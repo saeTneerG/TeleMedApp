@@ -56,6 +56,8 @@ const WaitingScreen = () => {
                 navigation.replace(ROUTES.CHAT, {
                     roomId: queueId,
                     chatPartnerName: data.doctorName || 'แพทย์',
+                    patientId: data.patientId,
+                    queueId: queueId,
                 });
             }
         });
