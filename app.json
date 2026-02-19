@@ -21,8 +21,13 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "softwareKeyboardLayoutMode": "adjustResize",
-      "package": "com.anonymous.TeleMedApp"
+      "softwareKeyboardLayoutMode": "resize",
+      "package": "com.anonymous.telemedapp",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -36,7 +41,14 @@
           "microphonePermission": "Allow TeleMedApp to access your microphone for video calls",
           "recordAudioAndroid": true
         }
-      ]
-    ]
+      ],
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "52f545d8-9077-4b56-9af4-447ea29efbc3"
+      }
+    },
+    "owner": "chawit"
   }
 }

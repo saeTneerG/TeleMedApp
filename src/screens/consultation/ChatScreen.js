@@ -1,7 +1,7 @@
 // src/screens/consultation/ChatScreen.js
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, useWindowDimensions } from 'react-native';
-import { GiftedChat, Bubble, Send } from 'react-native-gifted-chat';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, useWindowDimensions, Keyboard, Platform } from 'react-native';
+import { GiftedChat, Bubble } from 'react-native-gifted-chat';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,10 +21,45 @@ const ChatScreen = () => {
     const { roomId, chatPartnerName, patientId, queueId } = route.params || { roomId: 'test-room', chatPartnerName: 'คุณหมอ' };
 
     const [messages, setMessages] = useState([]);
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
+    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
     // คำนวณความสูงคีย์บอร์ดแบบ dynamic จาก screen vs window
     const { height: windowHeight } = useWindowDimensions();
-    const keyboardOffset = Math.max(SCREEN_HEIGHT - windowHeight, 0);
+    const keyboardOffsetFromWindow = Math.max(SCREEN_HEIGHT - windowHeight, 0);
+
+    useEffect(() => {
+        const applyKeyboardHeight = (event) => {
+            const eventHeight = event?.endCoordinates?.height || 0;
+            setIsKeyboardVisible(true);
+            setKeyboardHeight(Math.max(eventHeight, keyboardOffsetFromWindow));
+        };
+
+        const hideKeyboard = () => {
+            setIsKeyboardVisible(false);
+            setKeyboardHeight(0);
+        };
+
+        const subscriptions = Platform.select({
+            ios: [
+                Keyboard.addListener('keyboardWillShow', applyKeyboardHeight),
+                Keyboard.addListener('keyboardWillChangeFrame', applyKeyboardHeight),
+                Keyboard.addListener('keyboardWillHide', hideKeyboard),
+            ],
+            default: [
+                Keyboard.addListener('keyboardDidShow', applyKeyboardHeight),
+                Keyboard.addListener('keyboardDidHide', hideKeyboard),
+            ],
+        });
+
+        return () => subscriptions?.forEach((sub) => sub.remove());
+    }, [keyboardOffsetFromWindow]);
+
+    useEffect(() => {
+        if (isKeyboardVisible && keyboardOffsetFromWindow > 0) {
+            setKeyboardHeight((prev) => Math.max(prev, keyboardOffsetFromWindow));
+        }
+    }, [isKeyboardVisible, keyboardOffsetFromWindow]);
 
     useEffect(() => {
         // บันทึกว่าผู้ใช้เปิดอ่านแชทนี้แล้ว
@@ -96,7 +131,7 @@ const ChatScreen = () => {
             </View>
 
             {/* Chat area — paddingBottom อ้างอิงจากความสูงจริงของคีย์บอร์ด */}
-            <View style={{ flex: 1, paddingBottom: keyboardOffset }}>
+            <View style={{ flex: 1, paddingBottom: keyboardHeight }}>
                 <GiftedChat
                     messages={messages}
                     onSend={messages => onSend(messages)}
