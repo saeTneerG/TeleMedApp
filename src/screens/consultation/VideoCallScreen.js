@@ -6,6 +6,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import { createRoom } from '../../services/MeteredService';
 import { COLORS } from '../../constants/theme';
+import { ROUTES } from '../../constants/routes';
 
 const VideoCallScreen = () => {
     const navigation = useNavigation();
@@ -16,7 +17,8 @@ const VideoCallScreen = () => {
     const [roomUrl, setRoomUrl] = useState(null);
     const [loading, setLoading] = useState(true);
     const hasExitedRef = useRef(false);
-    const participantName = String(
+
+const participantName = String(
         userData?.fullName || userData?.name || userData?.displayName || ''
     ).trim();
 
@@ -38,8 +40,17 @@ const VideoCallScreen = () => {
     const exitToApp = useCallback(() => {
         if (hasExitedRef.current) return;
         hasExitedRef.current = true;
+        const isDoctor = userData?.role === 'doctor';
+        if (isDoctor) {
+            navigation.replace(ROUTES.PRESCRIPTION, {
+                patientName: partnerName || 'คนไข้',
+                patientId: patientId || null,
+                queueId: queueId || null,
+            });
+            return;
+        }
         navigation.goBack();
-    }, [navigation]);
+    }, [navigation, userData?.role, partnerName, patientId, queueId]);
 
     const handlePotentialLeave = useCallback((url) => {
         if (!url) return;
@@ -257,7 +268,7 @@ const VideoCallScreen = () => {
             ) : (
                 <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>Could not load video room.</Text>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
+                    <TouchableOpacity onPress={exitToApp} style={styles.closeButton}>
                         <Text style={styles.closeButtonText}>Close</Text>
                     </TouchableOpacity>
                 </View>
