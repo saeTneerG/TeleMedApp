@@ -40,4 +40,4 @@ yarn-error.*
 /ios
 
 # Security
-src/constants/config.js
+# src/constants/config.js
