@@ -24,7 +24,6 @@ const PaymentScreen = () => {
 
     const handlePayment = async () => {
         setLoading(true);
-        // จำลองการจ่ายเงิน (Delay 2 วินาที)
         setTimeout(async () => {
             try {
                 await processPayment(prescription.id);
